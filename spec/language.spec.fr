@@ -1,0 +1,89 @@
+@use os;
+
+# Ferret is a general-purpose programming language,
+# designed for high-performance, scalable, and memory-safe programs. 
+
+# Ferret does not allow global declarations. 
+# Therefore, all initializations must be encapsulated with functions.
+int main(os.Args args) -> def {
+  # In Ferret, the program execution begins in the 'main' function.
+  # Similar to C, this function must return an integer.  
+
+  # By now, you should already know how to write a comment.
+  # Ferret does not support multi-line comments.
+  
+  # Variables should use snake_case.
+  # If the Result unpacking fails, handle the error and terminate the program.
+  Ok<BetterArgs> better_args <= :BetterArgs(args, {
+    # Example: `<file> command --key=value`
+    # 'BetterArgs' is a built-in struct for parsing command-line arguments.
+    delimiter: "=",
+  });  
+
+  # Calling the appropriate function for the requested command.
+  match better_args {
+    Ok(better_args_value) -> {
+      Kernel kernel = :Kernel();
+      kernel.run(better_args.parse_command());
+    }
+  }
+
+  # 'better_args' are freed at compile-time just before the return.
+  # Indicate successful program termination.
+  return 0;
+};
+
+# Define the Commad struct, which represents a command with a callback function.
+struct Command -> proc {
+  # The 'fn' field will hold function that has no return value.
+  Def<Nil> fn;
+
+  # This method sets teh callback function for the Command instance.
+  # Takes a function of type `Def<Nil>`.
+  Result<Ok<&>, Nil> (&self, Def<Nil> fn) {
+    # Set the callback function to the provided one.
+    self.fn = fn;
+
+    # Return the Command instance to prevent it from going out of scope.
+    # If the Command instance is not returned, the compiler automatically,
+    # frees the parameters at the compile time.
+    return self, nil;
+  };
+
+  # This method retrieves the callback function associated with the Command instance.
+  # It returns the function wrapped in a Result.
+  Result<Ok<&, Def<Nil>>> get() -> def {
+    return self, self.fn;
+  };
+};
+
+# Define the Kernel struct, which represents a kernel
+# that holds commands and can run their them.
+struct Kernel -> proc {
+  Map<String, Command> commands = :Map.from({
+    # Anonymous functions can be created using || => {} 
+    "help": Command(|| => {
+      os.exit(0);
+    })
+  }); 
+
+  &run(&self, String command) -> def {
+    # Attempt to get the Command associated with the given command name.
+    match commands.get(command) {
+      Ok(Command command) -> {
+        # If the command is found, retrieve its callback function.
+        match command.get() {
+          Ok(Def<Nil> callback_fn) {
+            # Execute the callback function.
+            callback_fn();
+            return &self;
+          },
+          # If the callback retrieval fails, return the kernel.
+          _ -> return &self, Nil;
+        };
+      },
+      # If the command is not found, terminate the program.
+      Error(String msg) -> os.panic(msg);
+    };
+  };
+};
