@@ -1,89 +1,127 @@
 @use os;
+@use http;
 
 # Ferret is a general-purpose programming language,
 # designed for high-performance, scalable, and memory-safe programs. 
 
 # Ferret does not allow global declarations. 
 # Therefore, all initializations must be encapsulated with functions.
+
+# To define a Ferret function, you need to specify the function's type,
+# name, and arguments. The `-> def` is used for expressibility, helping
+# developers create a mental link between the function definition and 
+# `Def<>` type, which represents a function type.
+
+# In Ferret, the program execution begins in the 'main' function.
+# Similar to C, this function must return an integer.  
 int main(os.Args args) -> def {
-  # In Ferret, the program execution begins in the 'main' function.
-  # Similar to C, this function must return an integer.  
+  # In Ferret, each parameter or variable is explicitly typed. 
+  # In the main function, the type for the 'args' parameter 
+  # is defined just before the parameter identifier, specifying 
+  # that it should be of type `os.Args`.
 
   # By now, you should already know how to write a comment.
   # Ferret does not support multi-line comments.
   
-  # Variables should use snake_case.
-  # If the Result unpacking fails, handle the error and terminate the program.
-  Ok<BetterArgs> better_args <= :BetterArgs(args, {
-    # Example: `<file> command --key=value`
-    # 'BetterArgs' is a built-in struct for parsing command-line arguments.
-    delimiter: "=",
-  });  
+  # Variables should use snake_case to maintain consistency with Ferret's style guide.
 
-  # Calling the appropriate function for the requested command.
-  match better_args {
-    Ok(better_args_value) -> {
-      Kernel kernel = :Kernel();
-      kernel.run(better_args.parse_command());
-    }
-  }
+  # Defining an integer variable with a value of 1.
+  int integer = 1;
 
-  # 'better_args' are freed at compile-time just before the return.
+  # Ferret has implicit type conversion for certain types, so it recognizes that 
+  # the value `1.0` (a floating-point number) is functionally equivalent to `1` (an integer).
+  # This allows the following assignment without error or explicit casting.
+  int float_but_integer = 1.0;  # The float value 1.0 is automatically treated as an integer (1).
+
+  # Ferret enforces strict type safety, so assigning a floating-point value
+  # directly to an integer variable will result in a compile-time error. 
+  # In this case, `1.5` is a float and cannot be implicitly assigned to an integer
+  # without an explicit truncation. This ensures that there are no unexpected
+  # losses of precision, such as truncation of decimal values.
+  int float_but_truncated = 1.5;  # Compile-time error: Cannot assign float to int without explicit truncation.
+
+  # Declaring a floating-point variable to hold decimal values. 
+  # The `float` type in Ferret can store numbers with fractional parts.
+  float number = 4.8;  # The variable 'number' holds the floating-point value 4.8.
+
+  # Declaring a boolean variable to represent truth values (true or false).
+  # The `bool` type in Ferret is used to store binary values: 'true' or 'false'.
+  bool is_great_language = true;  
+
+  # Creating a new instance of the `HttpServer` struct.
+  # The `:` operator in Ferret is used to instantiate structs.
+  HttpServer server = :HttpServer();  
+
+  # The router function is responsible for routing requests to appropriate handlers.
+  # This call returns a `Result` type, which can either be an `Error` or a successful response.
+  # In this case, the route returns a Result of type `Error<String>`, which represents
+  # an error with a string message if something goes wrong (e.g., invalid input, not found).
+  server.router("/user/");  # Returns Result<Error<String>> - Error with a string message.
+
+  # This route returns a successful result (`Ok`) containing a `User` instance.
+  # The `Result` type in Ferret is used to represent the outcome of the request,
+  # where `Ok<User>` signifies a successful response with the user data.
+  server.router("/user/default");  # Returns Result<Ok<User>> - Successful response with a User object.
+
+  # Both 'args' and all other variables that were created or moved 
+  # to this function are freed at compile-time just before the return.
   # Indicate successful program termination.
   return 0;
 };
 
-# Define the Commad struct, which represents a command with a callback function.
-struct Command -> proc {
-  # The 'fn' field will hold function that has no return value.
-  Def<Nil> fn;
+# Defining a User struct to hold user's data.
+struct User -> proc {
+  # Properties in the User struct.
+  String id;
+  String name;
+  String email;
 
-  # This method sets teh callback function for the Command instance.
-  # Takes a function of type `Def<Nil>`.
-  Result<Ok<&>, Nil> (&self, Def<Nil> fn) {
-    # Set the callback function to the provided one.
-    self.fn = fn;
+  # The `&` symbol refers to the struct itself. The following 
+  # function returns an instance of the struct, as required 
+  # by the `&` function type. When used without a name, 
+  # `&(){}` serves as an initializer function for the struct.
+  &(& self, String id, String name, String email) -> def {
+    self.id = id;
+    self.name = name;
+    self.email = email;
 
-    # Return the Command instance to prevent it from going out of scope.
-    # If the Command instance is not returned, the compiler automatically,
-    # frees the parameters at the compile time.
-    return self, nil;
-  };
+    return self;
+  }
+}
 
-  # This method retrieves the callback function associated with the Command instance.
-  # It returns the function wrapped in a Result.
-  Result<Ok<&, Def<Nil>>> get() -> def {
-    return self, self.fn;
-  };
-};
+# Defining a Database struct to simulate a database.
+struct Database -> proc {
+  # Properties in the Database struct.
+  Map<String, User> users = :Map.from({
+    "default" -> :User("default", "Default User" "default@ferret.org")
+  });
 
-# Define the Kernel struct, which represents a kernel
-# that holds commands and can run their them.
-struct Kernel -> proc {
-  Map<String, Command> commands = :Map.from({
-    # Anonymous functions can be created using || => {} 
-    "help": Command(|| => {
-      os.exit(0);
-    })
-  }); 
+  Result<Ok<&, User>, Error<&, String>> get_user() -> def {
+    Result<Ok<User>, _> user = self.users.get(id);
+    match  {
+      Ok(user) -> return Ok(self, user),
+      Error(_) -> return Error(self, "Request user does not exists.")
+    }
+  }
+} 
 
-  &run(&self, String command) -> def {
-    # Attempt to get the Command associated with the given command name.
-    match commands.get(command) {
-      Ok(Command command) -> {
-        # If the command is found, retrieve its callback function.
-        match command.get() {
-          Ok(Def<Nil> callback_fn) {
-            # Execute the callback function.
-            callback_fn();
-            return &self;
+# Defining the HTTP struct to handle incoming traffic.
+struct HTTPServer -> proc {
+  # Properties in the Database struct. 
+  Database db = :Database();
+
+  # Router function responsible for navigation.
+  Result<Ok<&, User>, Error<&, String>> router(& self, String path) -> def {
+    match path.split("/") {
+      Ok(List<String> parts) -> {
+        match parts {
+          "", "users", id -> {
+            return db.get_user(id)
           },
-          # If the callback retrieval fails, return the kernel.
-          _ -> return &self, Nil;
-        };
+          _ -> Error("400. Route not found.")
+        }
       },
-      # If the command is not found, terminate the program.
-      Error(String msg) -> os.panic(msg);
-    };
-  };
-};
+      _ -> Error("500. Internal Server Error, please try again later.")
+    }
+  }
+}
