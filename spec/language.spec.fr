@@ -1,5 +1,4 @@
 @use os;
-@use http;
 
 # Ferret is a general-purpose programming language,
 # designed for high-performance, scalable, and memory-safe programs. 
@@ -63,8 +62,9 @@ int main(os.Args args) -> def {
   # where `Ok<User>` signifies a successful response with the user data.
   server.router("/user/default");  # Returns Result<Ok<User>> - Successful response with a User object.
 
-  # Both 'args' and all other variables that were created or moved 
-  # to this function are freed at compile-time just before the return.
+  # Both 'args' and all other variables that were created or moved are properly freed. 
+  # Additionally, `server.database` is also freed, including its substructure `server.database.users`, 
+  # where each user's `id`, `name`, and `email` fields are also freed at compile-time just before the return.
   # Indicate successful program termination.
   return 0;
 };
@@ -80,12 +80,10 @@ struct User -> proc {
   # function returns an instance of the struct, as required 
   # by the `&` function type. When used without a name, 
   # `&(){}` serves as an initializer function for the struct.
-  &(& self, String id, String name, String email) -> def {
-    self.id = id;
-    self.name = name;
-    self.email = email;
-
-    return self;
+  void (String id, String name, String email) -> def {
+    &.id = id;
+    &.name = name;
+    &.email = email;
   }
 }
 
@@ -96,11 +94,11 @@ struct Database -> proc {
     "default" -> :User("default", "Default User" "default@ferret.org")
   });
 
-  Result<Ok<&, User>, Error<&, String>> get_user() -> def {
+  Result<Ok<User>, Error<String>> get_user(String id) -> def {
     Result<Ok<User>, _> user = self.users.get(id);
-    match  {
-      Ok(user) -> return Ok(self, user),
-      Error(_) -> return Error(self, "Request user does not exists.")
+    match user {
+      Ok(User user) -> return :Ok(user),
+      _ -> return :Error("Request user does not exists.")
     }
   }
 } 
@@ -111,17 +109,17 @@ struct HTTPServer -> proc {
   Database db = :Database();
 
   # Router function responsible for navigation.
-  Result<Ok<&, User>, Error<&, String>> router(& self, String path) -> def {
+  Result<Ok<User>, Error<String>> router(String path) -> def {
     match path.split("/") {
       Ok(List<String> parts) -> {
         match parts {
-          "", "users", id -> {
+          ["", "users", id] -> {
             return db.get_user(id)
           },
-          _ -> Error("400. Route not found.")
+          _ -> :Error("400. Route not found.")
         }
       },
-      _ -> Error("500. Internal Server Error, please try again later.")
+      _ -> :Error("500. Internal Server Error, please try again later.")
     }
   }
 }
