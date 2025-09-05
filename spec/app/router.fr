@@ -1,5 +1,5 @@
 @use http;
 
-pub fn handler() -> http.ServerConfig {
+@fn handler() -> http.ServerConfig {
   # Implement the router logic.
 }

@@ -1,7 +1,7 @@
 @use io;
 @use os;
 @use http;
-@use fstring:{f};
+@use fstring.{f};
 @use env.{EnvConfigurationOptions};
 
 @use app/router;
@@ -12,9 +12,21 @@
 # Ferret does not allow global declarations. 
 # Therefore, all initializations must be encapsulated with functions.
 
+# A typed component for environment configuration options
+@type EnvConfigurationOptions() {
+  # '&' refers to the current type (EnvConfigurationOptions), allowing for concise reuse
+  # '?' indicates an optional parameter
+  # This typed component supports named parameters in any order, improving developer experience
+  #
+  # Usage example:
+  # EnvConfigurationOptions(path: "src/env", basePath: "/app");
+  &(String? basePath, String path);
+}
+
+
 # In Ferret, the program execution begins in the 'main' function.
 # Similar to C, this function must return an integer.  
-fn main(os.Args args) -> int {
+@fn main(os.Args args) -> Int {
   # In Ferret, each parameter or variable is explicitly typed. 
   # In the main function, the type for the 'args' parameter 
   # is defined just before the parameter identifier, specifying 
@@ -23,8 +35,8 @@ fn main(os.Args args) -> int {
   # Loading environment variables into the project.
   EnvConfigurationOptions(path: ".env") 
   |> env.load
-  |> match {
-    Error(String msg) when msg.contains("missing") -> 
+  |> @match {
+    Error(String msg) @when msg.contains("missing") -> 
       os.exit(1, "Unable to find .env file."),
     Error(String msg) -> os.exit(1, msg),
     _ -> Nil
@@ -32,25 +44,25 @@ fn main(os.Args args) -> int {
 
   # Reading an environment variable value.
   String PORT = env.get("PORT")
-  |> match {
+  |> @match {
     Ok(String PORT) -> PORT,
     _ -> os.exit(1, "Missing 'PORT' environment variable.")
   }
 
   # Start the webserver.
-  # PROBLEM 1: How will the exectution stop here??!
   createServer(PORT);
+  # PROBLEM 1: How will the exectution stop here??!
   
   # Terminating the program with the SUCCESS status code. 
-  return 0;
+  @return 0;
 }
 
-fn createServer(Int PORT) -> Void {
+@fn createServer(Int PORT) -> Void {
   # Start the webserver.
   http.handler(router.handler)
   |> http.new
   |> http.listen(PORT)
-  |> match {
+  |> @match {
     Ok() -> io.println(f("Server is running on PORT: {}", PORT)),
 
     # PROBLEM 2: os.exit will create a memory leak, as it exits

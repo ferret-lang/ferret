@@ -1,0 +1,15 @@
+@use io.{readline};
+@use fstring.{f};
+
+# Every Ferret program must have a 'main' function.
+# This is the entry point where program execution starts.
+@fn main() -> Int {
+  # Prompt the user to enter their name.
+  String name = readline("Please enter your name: ");
+
+  # Greet the user with a personalized message.
+  io.println(f("Hello, {}!", name));
+
+  # Exit the program with a SUCCESS status code (0).
+  @return 0;
+}
