@@ -1,4 +1,5 @@
 @use os;
+@use app/router;
 
 # Ferret is a general-purpose programming language,
 # designed for high-performance, scalable, and memory-safe programs. 
@@ -19,107 +20,29 @@ int main(os.Args args) -> def {
   # is defined just before the parameter identifier, specifying 
   # that it should be of type `os.Args`.
 
-  # By now, you should already know how to write a comment.
-  # Ferret does not support multi-line comments.
-  
   # Variables should use snake_case to maintain consistency with Ferret's style guide.
+  Result<Ok<Nil>, Error<String>> env_loaded = env.load(:EnvConfigurationOptions({
+    path: ".env"
+  }));
 
-  # Defining an integer variable with a value of 1.
-  int integer = 1;
+  match env_loaded {
+    Error(String msg) -> {
+      if (msg.contains("missing")) {
+        os.exit(1, "Unable to find .env file.");
+      }
+      os.exit(1, msg);
+    }
+    _ -> Nil
+  }
 
-  # Ferret has implicit type conversion for certain types, so it recognizes that 
-  # the value `1.0` (a floating-point number) is functionally equivalent to `1` (an integer).
-  # This allows the following assignment without error or explicit casting.
-  int float_but_integer = 1.0;  # The float value 1.0 is automatically treated as an integer (1).
+  Result<Ok<String>, Error<String>> PORT = env.get("PORT");
+  match PORT {
+    Ok(String PORT) -> {
+      Result<Ok<http.Server>, Error<String>> = http.new(http.handler(router.handler));
+      # ...
+    },
+    _ -> os.exit(1, "Missing 'PORT' environment variable.");
+  }
 
-  # Ferret enforces strict type safety, so assigning a floating-point value
-  # directly to an integer variable will result in a compile-time error. 
-  # In this case, `1.5` is a float and cannot be implicitly assigned to an integer
-  # without an explicit truncation. This ensures that there are no unexpected
-  # losses of precision, such as truncation of decimal values.
-  int float_but_truncated = 1.5;  # Compile-time error: Cannot assign float to int without explicit truncation.
-
-  # Declaring a floating-point variable to hold decimal values. 
-  # The `float` type in Ferret can store numbers with fractional parts.
-  float number = 4.8;  # The variable 'number' holds the floating-point value 4.8.
-
-  # Declaring a boolean variable to represent truth values (true or false).
-  # The `bool` type in Ferret is used to store binary values: 'true' or 'false'.
-  bool is_great_language = true;  
-
-  # Creating a new instance of the `HttpServer` struct.
-  # The `:` operator in Ferret is used to instantiate structs.
-  HttpServer server = :HttpServer();  
-
-  # The router function is responsible for routing requests to appropriate handlers.
-  # This call returns a `Result` type, which can either be an `Error` or a successful response.
-  # In this case, the route returns a Result of type `Error<String>`, which represents
-  # an error with a string message if something goes wrong (e.g., invalid input, not found).
-  server.router("/user/");  # Returns Result<Error<String>> - Error with a string message.
-
-  # This route returns a successful result (`Ok`) containing a `User` instance.
-  # The `Result` type in Ferret is used to represent the outcome of the request,
-  # where `Ok<User>` signifies a successful response with the user data.
-  server.router("/user/default");  # Returns Result<Ok<User>> - Successful response with a User object.
-
-  # Both 'args' and all other variables that were created or moved are properly freed. 
-  # Additionally, `server.database` is also freed, including its substructure `server.database.users`, 
-  # where each user's `id`, `name`, and `email` fields are also freed at compile-time just before the return.
-  # Indicate successful program termination.
   return 0;
-};
-
-# Defining a User struct to hold user's data.
-struct User -> proc {
-  # Properties in the User struct.
-  String id;
-  String name;
-  String email;
-
-  # The `&` symbol refers to the struct itself. The following 
-  # function returns an instance of the struct, as required 
-  # by the `&` function type. When used without a name, 
-  # `&(){}` serves as an initializer function for the struct.
-  void (String id, String name, String email) -> def {
-    &.id = id;
-    &.name = name;
-    &.email = email;
-  }
-}
-
-# Defining a Database struct to simulate a database.
-struct Database -> proc {
-  # Properties in the Database struct.
-  Map<String, User> users = :Map.from({
-    "default" -> :User("default", "Default User" "default@ferret.org")
-  });
-
-  Result<Ok<User>, Error<String>> get_user(String id) -> def {
-    Result<Ok<User>, _> user = self.users.get(id);
-    match user {
-      Ok(User user) -> return :Ok(user),
-      _ -> return :Error("Request user does not exists.")
-    }
-  }
-} 
-
-# Defining the HTTP struct to handle incoming traffic.
-struct HTTPServer -> proc {
-  # Properties in the Database struct. 
-  Database db = :Database();
-
-  # Router function responsible for navigation.
-  Result<Ok<User>, Error<String>> router(String path) -> def {
-    match path.split("/") {
-      Ok(List<String> parts) -> {
-        match parts {
-          ["", "users", id] -> {
-            return db.get_user(id)
-          },
-          _ -> :Error("400. Route not found.")
-        }
-      },
-      _ -> :Error("500. Internal Server Error, please try again later.")
-    }
-  }
 }

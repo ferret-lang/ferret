@@ -1,0 +1,61 @@
+@use io;
+@use os;
+@use http;
+@use fstring:{f};
+@use env.{EnvConfigurationOptions};
+
+@use app/router;
+
+# Ferret is a general-purpose programming language,
+# designed for high-performance, scalable, and memory-safe programs. 
+
+# Ferret does not allow global declarations. 
+# Therefore, all initializations must be encapsulated with functions.
+
+# In Ferret, the program execution begins in the 'main' function.
+# Similar to C, this function must return an integer.  
+fn main(os.Args args) -> int {
+  # In Ferret, each parameter or variable is explicitly typed. 
+  # In the main function, the type for the 'args' parameter 
+  # is defined just before the parameter identifier, specifying 
+  # that it should be of type `os.Args`.
+  
+  # Loading environment variables into the project.
+  EnvConfigurationOptions(path: ".env") 
+  |> env.load
+  |> match {
+    Error(String msg) when msg.contains("missing") -> 
+      os.exit(1, "Unable to find .env file."),
+    Error(String msg) -> os.exit(1, msg),
+    _ -> Nil
+  }
+
+  # Reading an environment variable value.
+  String PORT = env.get("PORT")
+  |> match {
+    Ok(String PORT) -> PORT,
+    _ -> os.exit(1, "Missing 'PORT' environment variable.")
+  }
+
+  # Start the webserver.
+  # PROBLEM 1: How will the exectution stop here??!
+  createServer(PORT);
+  
+  # Terminating the program with the SUCCESS status code. 
+  return 0;
+}
+
+fn createServer(Int PORT) -> Void {
+  # Start the webserver.
+  http.handler(router.handler)
+  |> http.new
+  |> http.listen(PORT)
+  |> match {
+    Ok() -> io.println(f("Server is running on PORT: {}", PORT)),
+
+    # PROBLEM 2: os.exit will create a memory leak, as it exits
+    # the program before freeing the variables in this function, 
+    # and other previously called functions. 
+    Error(Int code, String msg) -> os.exit(code, msg),
+  }
+}
