@@ -13,6 +13,10 @@
 # Therefore, all initializations must be encapsulated with functions.
 
 # A typed component for environment configuration options
+# PROBLEM 3: The current typed-components implementation is overly simplistic 
+# and lacks the flexibility to represent complex or nested data structures. 
+# This limitation restricts the range of data types that can be accurately 
+# modeled or validated within the system.
 @type EnvConfigurationOptions() {
   # '&' refers to the current type (EnvConfigurationOptions), allowing for concise reuse
   # '?' indicates an optional parameter
