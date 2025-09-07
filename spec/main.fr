@@ -1,0 +1,60 @@
+# The '@use' directive is used to import modules or libraries.
+# Built-in modules like 'os', 'io' and 'time' provide essential functionality,
+@use os;
+@use io;
+@use time;
+
+# While user-defined modules (e.g., 'app/todo') organize application logic.
+@use app/todo;
+
+# Ferret is a general-purpose programming language,
+# designed for high-performance, scalable, and memory-safe programs.
+
+# Ferret does not allow global declarations. 
+# Therefore, all initializations must be encapsulated with functions.
+
+# Ferret does not use classes or objects. Instead, it introduces a more
+# elegant way to represent data using typed components (also known as custom types).
+# A typed component can have multiple variants, making it a powerful tool for
+# expressing structured data.
+
+# In Ferret, the program execution begins in the 'main' function.
+# Similar to C, this function must return an integer.  
+
+@fn main() -> Int {
+  @while (true) {
+    # The '@while' keyword is used to define a loop with a condition.
+    # This loop runs indefinitely until an exit condition is triggered.
+
+    io.print("Welcome to TodoPlanner!");
+    io.print("0. List Todo");
+    io.print("1. Add Todo");
+    io.print("2. Update Todo");
+    io.print("3. Delete Todo");
+
+    # 'io.readline()' reads a line from standard input.
+    # The result is passed to the match expression using the pipeline operator '|>'.
+
+    io.readline() 
+    |> @match {
+      # The '@match' block is used for pattern matching.
+      # It branches logic based on the structure and value of the input.
+      # Each arm of the match specifies a pattern and an associated action.
+
+      Ok(String "0") -> todo.listTodo(),
+      Ok(String "1") -> todo.addTodo(),
+      Ok(String "2") -> todo.updateTodo(),
+      Ok(String "3") -> todo.deleteTodo(), 
+
+      # Error handling: If an error occurs while reading input,
+      # or if the input doesn't match any expected pattern,
+      # the program exits with a non-zero status code.
+
+      Error(String err) -> os.exit(1, msg),
+      _ -> os.exit(1, "Invalid action."),
+    }
+  }
+
+  # Terminating the program with the SUCCESS status code. 
+  @return 0;
+}

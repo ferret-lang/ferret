@@ -1,0 +1,88 @@
+# The '@use' directive is used to import modules that provide I/O, 
+# filesystem operations, JSON parsing, and string formatting.
+
+@use io;
+@use fs;
+@use json;
+@use fstring:{f};
+
+# The '@type' keyword is used to define a custom type, also known as a typed component.
+# A typed component can have multiple named variants, each optionally holding values.
+# In this case, 'TodoStatus' is an enum-like type with two possible states.
+
+@type TodoStatus {
+  Complete,
+  InComplete
+}
+
+# This defines another typed component, 'Todo', which holds structured data.
+# Each field in the component has an explicitly defined type.
+
+@type Todo {
+  # All variables and parameters in Ferret are statically typed.
+  # The type is always declared before the variable name.
+  Todo(
+    String title, 
+    TodoStatus status, 
+    Time createdAt, 
+    Time updatedAt
+  )
+}
+
+# This function returns the path to the JSON file where todos are stored.
+# It checks if the file exists before returning it.
+
+@fn getTodosJsonFilePath() -> String {
+  String todoJsonFilePath = "data/todo.json";
+
+  # The 'fs.exits' function checks for file existence.
+  # The result is matched using the '@match' expression.
+
+  fs.exits(todoJsonFilePath)
+  |> @match {
+    Ok(_) -> return todoJsonFilePath,
+    Error(String err) -> os.exit(1, err)
+  }
+}
+
+# This function lists all the todos from the JSON file.
+
+@fn listTodo() -> Void {
+  getTodosJsonFilePath()
+  |> fs.readFile("utf-8")
+  |> @match {
+    # If the file is read successfully, attempt to parse its JSON content.
+
+    Ok(String content) -> {
+      json.parse(content)
+      |> @match {
+        # If the content is successfully parsed into a list of Todo items:
+        Ok(List<Todo> todos) -> {
+          todos.each(@fn (Todo todo) {
+            # Display 'x' if the todo is complete, else a blank space.
+            String todoStatus = @match (todo.status) {
+              Complete -> "x",
+              InComplete -> " ",
+            };
+
+            # Print the todo item in a human-readable format.
+            io.print(f("[{}] {}", todoStatus, todo.title));  
+          }),
+        },
+
+        # If the JSON content is malformed or doesn't match expected structure, ignore.
+        _ -> Nil
+      }
+    },
+
+    # If reading the file fails, exit the program with an error.
+    Error(String msg) -> os.exit(1, msg)
+  }
+}
+
+# These functions are placeholders.
+# They are part of the specification demonstration and are not yet implemented.
+
+@fn addTodo() -> Void {}
+@fn deleteTodo() -> Void {}
+@fn updateTodo() -> Void {}
