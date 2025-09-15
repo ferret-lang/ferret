@@ -30,6 +30,14 @@ typedef enum TokenKind {
   TOKEN_LBRACE,
   TOKEN_RBRACE,
   TOKEN_SEMICOLON,
+  TOKEN_ARROW,
+
+  // Operators
+  TOKEN_PLUS,
+  TOKEN_HYPHEN,
+  TOKEN_STAR,
+  TOKEN_SLASH,
+  TOKEN_EQUAL,
 } TokenKind;
 
 
@@ -202,6 +210,27 @@ public:
         case ';':
           appendToken(";", TOKEN_SEMICOLON);
           continue;
+        case '+':
+          appendToken("+", TOKEN_PLUS);
+          continue;
+        case '*':
+          appendToken("*", TOKEN_STAR);
+          continue;
+        case '/':
+          appendToken("/", TOKEN_SLASH);
+          continue;
+        case '=':
+          appendToken("=", TOKEN_EQUAL);
+          continue;
+        case '-':
+          if (peek() == '>') {
+            advance();
+            appendToken("->", TOKEN_ARROW);
+            continue;
+          } else {
+            appendToken("-", TOKEN_HYPHEN);
+            continue;
+          }
         default:
           const std::string context = sourceCode.substr(startingPosition, lPtr - startingPosition);
           throw std::invalid_argument(
