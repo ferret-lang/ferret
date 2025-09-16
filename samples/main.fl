@@ -7,11 +7,11 @@ type Classes {
   Rich
 }
 
-fn main() -> int {
+int main() {
   Classes userClass = 
     io.readline("Please enter your class: ") 
     |> io.string.toLower 
-    |>  match {
+    |> match {
       "poor" -> Poor,
       "middle" -> Middle,
       "rich" -> Rich
