@@ -1,7 +1,7 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include "base/Parser.cpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 int main() {
   // Reading the source file from the system.
@@ -14,8 +14,7 @@ int main() {
     std::string contents = buffer.str();
 
     // Generating the AST.
-    auto ast =
-      std::make_shared<Parser>(contents)->generateTranslationUnit();
+    auto ast = std::make_shared<Parser>(contents)->generateTranslationUnit();
 
     // Printing the AST.
     Parser::print(ast);

@@ -40,7 +40,6 @@ typedef enum TokenKind {
   TOKEN_EQUAL,
 } TokenKind;
 
-
 // Used to bind information to the raw source code.
 class Token {
 private:
@@ -56,19 +55,15 @@ private:
 
 public:
   // Constructor function for the Token.
-  Token(std::string lexeme, const TokenKind kind, const size_t line, const size_t column) : line(line), column(column),
-    kind(kind), lexeme(std::move(lexeme)) {
-  }
+  Token(std::string lexeme, const TokenKind kind, const size_t line,
+        const size_t column)
+      : line(line), column(column), kind(kind), lexeme(std::move(lexeme)) {}
 
   // Function to get the lexeme.
-  std::string getLexeme() const {
-    return lexeme;
-  }
+  std::string getLexeme() const { return lexeme; }
 
   // Function to get the token kind.
-  TokenKind getKind() const {
-    return kind;
-  }
+  TokenKind getKind() const { return kind; }
 };
 
 // Iterates over each character in the source code, and
@@ -86,20 +81,17 @@ private:
   size_t sourceCodeLength;
 
   // Contains the token representation of the source code.
-  std::vector<std::shared_ptr<Token> > tokens;
+  std::vector<std::shared_ptr<Token>> tokens;
 
   // Helper function that checks if we have reached the end of the file.
-  bool haveReachedEOF() const {
-    return lPtr >= sourceCodeLength;
-  }
+  bool haveReachedEOF() const { return lPtr >= sourceCodeLength; }
 
   // Helper function to get the current character.
   char peek() const {
     if (lPtr > sourceCodeLength) {
-      throw std::out_of_range(
-        "\nPointer exceeds the source code length!\n"
-        + std::to_string(lPtr) + ">" + std::to_string(sourceCodeLength)
-      );
+      throw std::out_of_range("\nPointer exceeds the source code length!\n" +
+                              std::to_string(lPtr) + ">" +
+                              std::to_string(sourceCodeLength));
     }
     return sourceCode[lPtr];
   }
@@ -140,11 +132,11 @@ private:
 
 public:
   // Constructor function for the Lexer.
-  explicit Lexer(const std::string &sourceCode) : sourceCode(sourceCode), sourceCodeLength(sourceCode.size()) {
-  }
+  explicit Lexer(const std::string &sourceCode)
+      : sourceCode(sourceCode), sourceCodeLength(sourceCode.size()) {}
 
   // Function to tokenize the given source code into tokens.
-  std::vector<std::shared_ptr<Token> > tokenize() {
+  std::vector<std::shared_ptr<Token>> tokenize() {
     // Looping over each character in the source code.
     while (!haveReachedEOF()) {
       if (canBeSkipped()) {
@@ -169,7 +161,8 @@ public:
           advance();
         }
         const size_t identifierLength = lPtr - startingPosition;
-        const std::string identifierLabel = sourceCode.substr(startingPosition, identifierLength);
+        const std::string identifierLabel =
+            sourceCode.substr(startingPosition, identifierLength);
         appendToken(identifierLabel, TOKEN_IDENTIFIER_LITERAL);
         continue;
       }
@@ -181,65 +174,71 @@ public:
           if (testCharacter == '.') {
             if (isFloat) {
               throw std::invalid_argument(
-                std::string("\nInvalid float literal: Multiple decimal points encountered.\n")
-                + ">>>: " + sourceCode.substr(startingPosition, lPtr - startingPosition)
-              );
+                  std::string("\nInvalid float literal: Multiple decimal "
+                              "points encountered.\n") +
+                  ">>>: " +
+                  sourceCode.substr(startingPosition, lPtr - startingPosition));
             }
             isFloat = true;
           }
         }
         const size_t numberLength = lPtr - startingPosition;
-        const std::string numberLabel = sourceCode.substr(startingPosition, numberLength);
-        appendToken(numberLabel, isFloat ? TOKEN_FLOAT_LITERAL : TOKEN_INTEGER_LITERAL);
+        const std::string numberLabel =
+            sourceCode.substr(startingPosition, numberLength);
+        appendToken(numberLabel,
+                    isFloat ? TOKEN_FLOAT_LITERAL : TOKEN_INTEGER_LITERAL);
         continue;
       }
 
       switch (currentCharacter) {
-        case '(':
-          appendToken("(", TOKEN_LBRACE);
+      case '(':
+        appendToken("(", TOKEN_LBRACE);
+        continue;
+      case ')':
+        appendToken(")", TOKEN_RBRACE);
+        continue;
+      case '{':
+        appendToken("{", TOKEN_LBRACE);
+        continue;
+      case '}':
+        appendToken("}", TOKEN_RBRACE);
+        continue;
+      case ';':
+        appendToken(";", TOKEN_SEMICOLON);
+        continue;
+      case '+':
+        appendToken("+", TOKEN_PLUS);
+        continue;
+      case '*':
+        appendToken("*", TOKEN_STAR);
+        continue;
+      case '/':
+        appendToken("/", TOKEN_SLASH);
+        continue;
+      case '=':
+        appendToken("=", TOKEN_EQUAL);
+        continue;
+      case '-':
+        if (peek() == '>') {
+          advance();
+          appendToken("->", TOKEN_ARROW);
           continue;
-        case ')':
-          appendToken(")", TOKEN_RBRACE);
+        } else {
+          appendToken("-", TOKEN_HYPHEN);
           continue;
-        case '{':
-          appendToken("{", TOKEN_LBRACE);
-          continue;
-        case '}':
-          appendToken("}", TOKEN_RBRACE);
-          continue;
-        case ';':
-          appendToken(";", TOKEN_SEMICOLON);
-          continue;
-        case '+':
-          appendToken("+", TOKEN_PLUS);
-          continue;
-        case '*':
-          appendToken("*", TOKEN_STAR);
-          continue;
-        case '/':
-          appendToken("/", TOKEN_SLASH);
-          continue;
-        case '=':
-          appendToken("=", TOKEN_EQUAL);
-          continue;
-        case '-':
-          if (peek() == '>') {
-            advance();
-            appendToken("->", TOKEN_ARROW);
-            continue;
-          } else {
-            appendToken("-", TOKEN_HYPHEN);
-            continue;
-          }
-        default:
-          const std::string context = sourceCode.substr(startingPosition, lPtr - startingPosition);
-          throw std::invalid_argument(
-            "\nUnexpected character encountered at position "
-            + std::to_string(startingPosition)
-            + "\n>>>: " + (context == " " ? "[space]" : context));
+        }
+      default:
+        const std::string context =
+            sourceCode.substr(startingPosition, lPtr - startingPosition);
+        throw std::invalid_argument(
+            "\nUnexpected character encountered at position " +
+            std::to_string(startingPosition) +
+            "\n>>>: " + (context == " " ? "[space]" : context));
       }
     }
 
+    // Marking the end of the tokens.
+    appendToken("\0", TOKEN_EOF);
     return tokens;
   };
 };
