@@ -1,1 +1,25 @@
--0 -> 1
+use io;
+use fstring:{f};
+
+type Classes {
+  Poor,
+  Middle,
+  Rich
+}
+
+fn main() -> int {
+  Classes userClass = 
+    io.readline("Please enter your class: ") 
+    |> io.string.toLower 
+    |>  match {
+      "poor" -> Poor,
+      "middle" -> Middle,
+      "rich" -> Rich
+      x -> 
+        f("Recieved '{}', but expected the input to be only 'poor', 'middle' or 'rich'")
+        |> io.panic;
+    };
+
+  # Do something with the user class. 
+  return 0;
+}

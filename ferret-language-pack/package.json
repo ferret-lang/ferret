@@ -1,0 +1,45 @@
+{
+  "name": "ferret-syntax-theme",
+  "displayName": "Ferret Syntax + Theme",
+  "description": "Syntax highlighting and theme for Ferret language.",
+  "version": "1.0.0",
+  "publisher": "baraich",
+  "repository": "https://github.com/ferret-lang/ferret",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Languages",
+    "Themes"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "ferret",
+        "aliases": [
+          "Ferret",
+          "ferret"
+        ],
+        "extensions": [
+          ".fl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ferret",
+        "scopeName": "source.ferret",
+        "path": "./syntaxes/ferret.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Ferret Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/color-theme.json"
+      }
+    ]
+  }
+}
