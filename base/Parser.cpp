@@ -1,4 +1,6 @@
 #include "Lexer.cpp"
+#include <memory>
+#include <variant>
 
 // AST refers to Abstract Syntax Tree,
 // all the nodes in this tree represent a specific statement.
@@ -10,9 +12,9 @@ typedef enum ASTKind {
 
 typedef struct TranslationUnit {} TranslationUnit;
 typedef struct ASTNode {
-  union {
-    std::shared_ptr<TranslationUnit> translationUnit;
-  } as;
+  std::variant<
+    std::shared_ptr<TranslationUnit>
+  > as;
 } ASTNode;
 
 // Creates an overall structure for the program
@@ -31,10 +33,18 @@ public:
     // Creating tokens from the source code.
     auto tokens = lexer->tokenize();
 
+    // Building the HEAD node.
     auto translationUnit = std::make_shared<TranslationUnit>();
 
     // Building a node.
     auto node = std::make_shared<ASTNode>();
-    node->as.translationUnit = translationUnit;
+    node->as = translationUnit;
+    return node;
+  }
+
+
+  // Function to print the AST.
+  static void print(std::shared_ptr<ASTNode> node) {
+    std::cout << "Pending Implementation" << std::endl;
   }
 };

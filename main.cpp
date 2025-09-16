@@ -5,7 +5,7 @@
 
 int main() {
   // Reading the source file from the system.
-  const std::ifstream file("../samples/main.fl");
+  const std::ifstream file("./samples/main.fl");
 
   // Asserting whether the file is opened.
   if (file.is_open()) {
@@ -14,7 +14,11 @@ int main() {
     std::string contents = buffer.str();
 
     // Generating the AST.
-    std::make_shared<Parser>(contents);
+    auto ast =
+      std::make_shared<Parser>(contents)->generateTranslationUnit();
+
+    // Printing the AST.
+    Parser::print(ast);
   } else {
     std::cerr << "Unable to not open the specified file!" << std::endl;
   }
