@@ -13,10 +13,6 @@ typedef enum TokenKind {
   TOKEN_FUNCTION,
   TOKEN_RETURN,
 
-  // Represents data types in the language.
-  // Used for user-defined or in-built types, such as Int, String, Bool.
-  TOKEN_TYPE_LITERAL,
-
   // Represents variable names in the language.
   TOKEN_IDENTIFIER_LITERAL,
 
@@ -59,11 +55,58 @@ public:
         const size_t column)
       : line(line), column(column), kind(kind), lexeme(std::move(lexeme)) {}
 
+  // Function to get the token kind label.
+  static std::string getStringEquivalentForKind(TokenKind kind) {
+    switch (kind) {
+    case TOKEN_FUNCTION:
+      return "TOKEN_FUNCTION";
+    case TOKEN_RETURN:
+      return "TOKEN_RETURN";
+    case TOKEN_EOF:
+      return "TOKEN_EOF";
+    case TOKEN_ARROW:
+      return "TOKEN_ARROW";
+    case TOKEN_EQUAL:
+      return "TOKEN_EQUAL";
+    case TOKEN_FLOAT_LITERAL:
+      return "TOKEN_FLOAT_LITERAL";
+    case TOKEN_IDENTIFIER_LITERAL:
+      return "TOKEN_IDENTIFIER_LITERAL";
+    case TOKEN_INTEGER_LITERAL:
+      return "TOKEN_ITEGER_LITERAL";
+    case TOKEN_HYPHEN:
+      return "TOKEN_HYPHEN";
+    case TOKEN_LBRACE:
+      return "TOKEN_LBRACE";
+    case TOKEN_LBRACKET:
+      return "TOKEN_LBRACKET";
+    case TOKEN_PLUS:
+      return "TOKEN_PLUS";
+    case TOKEN_RBRACE:
+      return "TOKEN_RBRACE";
+    case TOKEN_RBRACKET:
+      return "TOKEN_RBRACKET";
+    case TOKEN_SEMICOLON:
+      return "TOKEN_SEMICOLON";
+    case TOKEN_SLASH:
+      return "TOKEN_SLASH";
+    case TOKEN_STAR:
+      return "TOKEN_STAR";
+    }
+
+    return "TOKEN_UNRECOGNIZED";
+  }
+
   // Function to get the lexeme.
   std::string getLexeme() const { return lexeme; }
 
   // Function to get the token kind.
   TokenKind getKind() const { return kind; }
+  std::string getKindLabel() { return getStringEquivalentForKind(kind); }
+
+  // Functions to get the line and column.
+  size_t getLine() { return line; }
+  size_t getColumn() { return column; }
 };
 
 // Iterates over each character in the source code, and
@@ -88,7 +131,7 @@ private:
 
   // Helper function to get the current character.
   char peek() const {
-    if (lPtr > sourceCodeLength) {
+    if (lPtr >= sourceCodeLength) {
       throw std::out_of_range("\nPointer exceeds the source code length!\n" +
                               std::to_string(lPtr) + ">" +
                               std::to_string(sourceCodeLength));
@@ -141,6 +184,7 @@ public:
     while (!haveReachedEOF()) {
       if (canBeSkipped()) {
         incrementPtr();
+        continue;
       }
       // Storing the current position of the lexer.
       const size_t startingPosition = lPtr;
@@ -151,7 +195,6 @@ public:
       if (currentCharacter == '\n') {
         line++;
         column = 0;
-        advance();
         continue;
       }
 
@@ -163,7 +206,14 @@ public:
         const size_t identifierLength = lPtr - startingPosition;
         const std::string identifierLabel =
             sourceCode.substr(startingPosition, identifierLength);
-        appendToken(identifierLabel, TOKEN_IDENTIFIER_LITERAL);
+
+        if (identifierLabel == "function") {
+          appendToken(identifierLabel, TOKEN_FUNCTION);
+        } else if (identifierLabel == "return") {
+          appendToken(identifierLabel, TOKEN_RETURN);
+        } else {
+          appendToken(identifierLabel, TOKEN_IDENTIFIER_LITERAL);
+        }
         continue;
       }
 
@@ -192,10 +242,10 @@ public:
 
       switch (currentCharacter) {
       case '(':
-        appendToken("(", TOKEN_LBRACE);
+        appendToken("(", TOKEN_LBRACKET);
         continue;
       case ')':
-        appendToken(")", TOKEN_RBRACE);
+        appendToken(")", TOKEN_RBRACKET);
         continue;
       case '{':
         appendToken("{", TOKEN_LBRACE);
