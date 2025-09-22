@@ -1,4 +1,5 @@
 #include "lib/snaps.h"
+#include "helpers.c"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,10 +26,10 @@ char *snapshot_extension_string_equivalent(SnapshotExtension_e extension_e) {
 }
 
 // Function to get the filepath to the snapshot file.
-char *get_snapshot_filepath(const char *test_name) {
+char *generate_filepath(const char *test_name,
+                        SnapshotExtension_e extension_e) {
   // Allocating memory for storing filepath.
-  char *snapshot_extension =
-      snapshot_extension_string_equivalent(SNAPSHOT_EXTENSION_DATA);
+  char *snapshot_extension = snapshot_extension_string_equivalent(extension_e);
   char *filepath =
       (char *)malloc(strlen(SNAPSHOTS_DIR) + 1 + strlen(test_name) +
                      strlen(snapshot_extension) + 1);
@@ -42,14 +43,11 @@ char *get_snapshot_filepath(const char *test_name) {
 }
 
 // Function to generate the snapshot file.
-bool snapshot_generate(const char *test_name, const char *data) {
-  char *snapshot_filepath = get_snapshot_filepath(test_name);
-
+bool snapshot_update(const char *filepath, const char *data) {
   // Getting the pointer the file in writing mode.
-  FILE *snapshot_file = fopen(snapshot_filepath, "w");
-  if (snapshot_filepath == NULL) {
-    fprintf(stderr, "Failed to write the snapshot: %s\n", snapshot_filepath);
-    free(snapshot_filepath);
+  FILE *snapshot_file = fopen(filepath, "w");
+  if (snapshot_file == NULL) {
+    fprintf(stderr, "Failed to write the snapshot: %s\n", filepath);
     return false;
   }
 
@@ -59,42 +57,73 @@ bool snapshot_generate(const char *test_name, const char *data) {
   return true;
 }
 
-// Function to compare the snapshot output.
-bool snapshot_validate(const char *test_name, const char *data) {
-  // Getting the path to the snapshot file on the system.
-  char *snapshot_filepath = get_snapshot_filepath(test_name);
-
-  // Open the file in reading mode.
-  FILE *snapshot_file = fopen(snapshot_filepath, "r");
-  if (snapshot_file == NULL) {
-    snapshot_generate(test_name, data);
-    fprintf(stderr, "Failed to open the snapshot file: %s\n",
-            snapshot_filepath);
-    free(snapshot_filepath);
-    return true;
-  }
-
-  // Reading the snapshot file.
-  fseek(snapshot_file, 0, SEEK_END);
-  size_t buffer_length = ftell(snapshot_file);
-  fseek(snapshot_file, 0, SEEK_SET);
-
-  char *snapshot = (char *)(malloc(buffer_length + 1));
-  if (snapshot == NULL) {
-    fprintf(stderr, "Failed to allocate memory for the snapshot contents: %s\n",
-            snapshot_filepath);
-    fclose(snapshot_file);
-    free(snapshot_filepath);
+bool snapshot_status_update(const char *filepath, SnapshotStatus_e status) {
+  FILE *snapshot_status_file = fopen(filepath, "w");
+  if (snapshot_status_file == NULL) {
+    fprintf(stderr, "Failed to write the snapshot status: %s", filepath);
     return false;
   }
-  fread(snapshot, 1, buffer_length, snapshot_file);
-  snapshot[buffer_length] = '\0';
 
-  // Compare the snapshot.
-  bool result = strcmp(snapshot, data) == 0;
+  fprintf(snapshot_status_file, "%s",
+          snapshot_status_string_equivalent(status));
+  fclose(snapshot_status_file);
+  return true;
+}
+
+// Function to compare the snapshot output.
+
+bool snapshot_validate(const char *test_name, const char *data) {
+  // Getting the path to the snapshot file on the system.
+  char *snapshot_filepath =
+      generate_filepath(test_name, SNAPSHOT_EXTENSION_DATA);
+  char *snapshot_status_filepath =
+      generate_filepath(test_name, SNAPSHOT_EXTENSION_STATUS);
+
+  if (!file_exists(snapshot_filepath)) {
+    snapshot_update(snapshot_filepath, data);
+    snapshot_status_update(snapshot_status_filepath, SNAPSHOT_STATUS_PENDING);
+    free(snapshot_filepath);
+    free(snapshot_status_filepath);
+    return false;
+  }
+
+  if (!file_exists(snapshot_status_filepath)) {
+    snapshot_status_update(snapshot_status_filepath, SNAPSHOT_STATUS_PENDING);
+    free(snapshot_filepath);
+    free(snapshot_status_filepath);
+    return false;
+  }
+
+  // Reading the files.
+  char *snapshot = get_file_contents(snapshot_filepath);
+  char *snapshot_status = get_file_contents(snapshot_status_filepath);
+
+  // Strip any trailing newlines or spaces from snapshot_status
+  char *status_trimmed = strdup(snapshot_status);
+  status_trimmed[strcspn(status_trimmed, "\n")] =
+      '\0'; // Remove newline at the end
+
+  if (strcmp(status_trimmed, snapshot_status_string_equivalent(
+                                 SNAPSHOT_STATUS_ACCEPTED)) != 0) {
+    free(status_trimmed);
+    free(snapshot);
+    free(snapshot_status);
+    free(snapshot_filepath);
+    free(snapshot_status_filepath);
+    return false;
+  }
+
+  // Compare the snapshot data
+  bool result = (strcmp(snapshot, data) == 0);
+  if (!result) {
+    snapshot_update(snapshot_filepath, data);
+    snapshot_status_update(snapshot_status_filepath, SNAPSHOT_STATUS_PENDING);
+  }
+
+  free(status_trimmed);
   free(snapshot);
-  fclose(snapshot_file);
+  free(snapshot_status);
   free(snapshot_filepath);
-
+  free(snapshot_status_filepath);
   return result;
 }
