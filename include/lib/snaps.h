@@ -36,8 +36,10 @@ static const SnapshotExtension_t snapshot_extensions[] = {
 char *snapshot_status_string_equivalent(SnapshotStatus_e status_e);
 char *snapshot_extension_string_equivalent(SnapshotExtension_e extension_e);
 char *generate_filepath(const char *test_name, SnapshotExtension_e extension_e);
-bool snapshot_update(const char *filepath, const char *data);
-bool snapshot_status_update(const char *filepath, SnapshotStatus_e status_e);
+bool snapshot_update(const char *test_name, const char *data);
+bool snapshot_status_update(const char *test_name, SnapshotStatus_e status_e);
+bool snapshot_exists(const char *test_name, SnapshotExtension_e extension_e);
+char *get_snapshot_contents(const char *test_name, SnapshotExtension_e extension_e);
 bool snapshot_validate(const char *test_name, const char *data);
 
 #endif
