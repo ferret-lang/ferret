@@ -16,7 +16,6 @@ char *get_file_contents(const char *filepath) {
   FILE *file = fopen(filepath, "r");
   if (file == NULL) {
     fprintf(stderr, "Failed to open the snapshot file: %s\n", filepath);
-    free(file);
     return NULL;
   }
 

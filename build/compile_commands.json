@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/baraich/Documents/C/ferret-lang/build/src",
+  "command": "/usr/bin/cc  -I/Users/baraich/Documents/C/ferret-lang/include -std=gnu2x -arch arm64 -o CMakeFiles/compiler.dir/main.c.o -c /Users/baraich/Documents/C/ferret-lang/src/main.c",
+  "file": "/Users/baraich/Documents/C/ferret-lang/src/main.c",
+  "output": "src/CMakeFiles/compiler.dir/main.c.o"
+},
+{
+  "directory": "/Users/baraich/Documents/C/ferret-lang/build/tests",
+  "command": "/usr/bin/cc  -I/Users/baraich/Documents/C/ferret-lang/include -I/opt/homebrew/include -std=gnu2x -arch arm64 -o CMakeFiles/run_tests.dir/test_snaps.c.o -c /Users/baraich/Documents/C/ferret-lang/tests/test_snaps.c",
+  "file": "/Users/baraich/Documents/C/ferret-lang/tests/test_snaps.c",
+  "output": "tests/CMakeFiles/run_tests.dir/test_snaps.c.o"
+}
+]

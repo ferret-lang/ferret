@@ -1,0 +1,11 @@
+/Users/baraich/Documents/C/ferret-lang/build/CMakeFiles/test.dir
+/Users/baraich/Documents/C/ferret-lang/build/CMakeFiles/edit_cache.dir
+/Users/baraich/Documents/C/ferret-lang/build/CMakeFiles/rebuild_cache.dir
+/Users/baraich/Documents/C/ferret-lang/build/src/CMakeFiles/compiler.dir
+/Users/baraich/Documents/C/ferret-lang/build/src/CMakeFiles/test.dir
+/Users/baraich/Documents/C/ferret-lang/build/src/CMakeFiles/edit_cache.dir
+/Users/baraich/Documents/C/ferret-lang/build/src/CMakeFiles/rebuild_cache.dir
+/Users/baraich/Documents/C/ferret-lang/build/tests/CMakeFiles/run_tests.dir
+/Users/baraich/Documents/C/ferret-lang/build/tests/CMakeFiles/test.dir
+/Users/baraich/Documents/C/ferret-lang/build/tests/CMakeFiles/edit_cache.dir
+/Users/baraich/Documents/C/ferret-lang/build/tests/CMakeFiles/rebuild_cache.dir

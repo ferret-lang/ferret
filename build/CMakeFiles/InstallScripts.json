@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/baraich/Documents/C/ferret-lang/build/cmake_install.cmake",
+		"/Users/baraich/Documents/C/ferret-lang/build/src/cmake_install.cmake",
+		"/Users/baraich/Documents/C/ferret-lang/build/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
