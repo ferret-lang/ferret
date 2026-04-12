@@ -1,7 +1,8 @@
 #include <iostream>
+#include "console/console.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-  std::cout << "Hello, World!" << std::endl;
+  std::cout << console(argc) << std::endl;
   return 0;
 }
