@@ -1,1 +1,0 @@
-int console(int argc);

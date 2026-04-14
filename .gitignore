@@ -1,4 +1,4 @@
-bin
+bin/
 
 **/CMakeFiles
 **/cmake_install.cmake

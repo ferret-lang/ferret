@@ -1,8 +1,10 @@
 #include <iostream>
-#include "console/console.h"
+#include "console/console.hpp"
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-  std::cout << console(argc) << std::endl;
+  auto options = console::parse_args(argc, argv);
+  std::cout << "Source file: " << options.source_file << "\n";
+  std::cout << "Output file: " << options.output_file << "\n";
   return 0;
 }
