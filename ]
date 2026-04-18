@@ -1,0 +1,81 @@
+#include "parser.hpp"
+#include "ast.hpp"
+#include "token.hpp"
+#include <memory>
+#include <stdexcept>
+#include <vector>
+
+namespace parser {
+
+bool Parser::is_eof() const { return position_ >= tokens_.size(); };
+Token Parser::peek() const { return tokens_.at(position_); };
+Token Parser::consume() { return tokens_.at(position_++); };
+
+void Parser::expect(TokenType expected_type) const {
+  if (peek().get_type() != expected_type)
+    throw new std::runtime_error(
+        "The expected type does not matach the current token.");
+};
+
+Token Parser::expect_and_consume(TokenType type) {
+  expect(type);
+  return consume();
+}
+
+std::unique_ptr<ast::Program> Parser::generate_program() {
+  std::vector<std::unique_ptr<ast::FunctionDeclaration>> functions = {};
+  while (!is_eof())
+    functions.push_back(parse_function());
+  return std::make_unique<ast::Program>(std::move(functions));
+};
+
+std::unique_ptr<ast::FunctionDeclaration> Parser::parse_function() {
+  // TODO: implement the u8 type
+  auto return_type = expect_and_consume(TokenType::Identifier);
+  auto name = expect_and_consume(TokenType::Identifier);
+
+  expect_and_consume(TokenType::LBracket);
+  expect_and_consume(TokenType::RBracket);
+
+  expect_and_consume(TokenType::LBrace);
+  auto block = parse_block();
+  expect_and_consume(TokenType::RBrace);
+
+  return std::make_unique<ast::FunctionDeclaration>(
+      return_type, name, std::vector<ast::Parameter>{}, std::move(block));
+};
+
+std::unique_ptr<ast::BlockStatement> Parser::parse_block() {
+  std::vector<std::unique_ptr<ast::Statement>> statements = {};
+  while (!is_eof() && peek().get_type() != TokenType::RBrace)
+    statements.push_back(parse_statement());
+  return std::make_unique<ast::BlockStatement>(std::move(statements));
+};
+
+std::unique_ptr<ast::Statement> Parser::parse_statement() {
+  auto token = peek();
+  switch (token.get_type()) {
+  case TokenType::Return: {
+    consume();
+    auto expression = parse_expression();
+    expect_and_consume(TokenType::SemiColon);
+    return std::make_unique<ast::ReturnStatement>(std::move(expression));
+  }
+
+  default:
+    throw std::runtime_error("Unknown statement");
+  }
+};
+
+std::unique_ptr<ast::Expression> Parser::parse_expression() {
+  auto token = peek();
+  switch (token.get_type()) {
+  case TokenType::IntegerLiteral:
+    consume();
+    return std::make_unique<ast::IntegerLiteral>(std::stoi(token.get_lexeme()));
+  default:
+    throw std::runtime_error("Unknown expression");
+  }
+}
+
+} // namespace parser

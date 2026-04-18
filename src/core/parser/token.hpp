@@ -16,7 +16,10 @@ enum class TokenType {
   LBracket,
   RBracket,
   SemiColon,
-  Comma
+  Comma,
+
+  u8,
+  Return,
 };
 
 class Token {

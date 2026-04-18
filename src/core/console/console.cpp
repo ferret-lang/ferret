@@ -11,7 +11,7 @@ public:
   void add_option(const std::string &option, OptionCallback callback) {
     options_[option] = std::move(callback);
   }
-  std::vector<std::string> parse_args(int argc, char **argv) {
+  std::vector<std::string> parse_args(int argc, char **argv) const {
     std::vector<std::string> positional_args;
 
     for (int i = 1; i < argc; ++i) {

@@ -31,8 +31,8 @@ private:
   std::string source_code_;
   std::size_t position_;
 
-  bool is_eof();
-  char peek();
+  bool is_eof() const;
+  char peek() const;
   char advance();
 
   void skip_whitespaces();
@@ -40,6 +40,6 @@ private:
   Token parse_identifier();
   Token parse_number_literal();
 
-  TokenType peek_punctuation_type();
+  TokenType peek_punctuation_type() const;
 };
 } // namespace parser

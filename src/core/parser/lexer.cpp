@@ -2,11 +2,15 @@
 #include "token.hpp"
 #include <cctype>
 #include <cstdio>
+#include <unordered_map>
 
 namespace parser {
 
-bool Lexer::is_eof() { return position_ >= source_code_.length(); }
-char Lexer::peek() { return source_code_[position_]; };
+std::unordered_map<std::string, TokenType> keywords = {
+    {"u8", TokenType::u8}, {"return", TokenType::Return}};
+
+bool Lexer::is_eof() const { return position_ >= source_code_.length(); }
+char Lexer::peek() const { return source_code_[position_]; };
 char Lexer::advance() { return source_code_[position_++]; }
 
 void Lexer::skip_whitespaces() {
@@ -22,7 +26,9 @@ Token Lexer::parse_identifier() {
   std::size_t length = position_ - begin;
 
   std::string lexeme = source_code_.substr(begin, length);
-  return Token(lexeme, TokenType::Identifier);
+  TokenType token_type =
+      keywords.count(lexeme) == 0 ? TokenType::Identifier : keywords.at(lexeme);
+  return Token(lexeme, token_type);
 };
 
 Token Lexer::parse_number_literal() {
@@ -48,7 +54,7 @@ Token Lexer::parse_number_literal() {
   return Token(lexeme, token_type);
 };
 
-TokenType Lexer::peek_punctuation_type() {
+TokenType Lexer::peek_punctuation_type() const {
   switch (peek()) {
   case '{':
     return TokenType::LBrace;
