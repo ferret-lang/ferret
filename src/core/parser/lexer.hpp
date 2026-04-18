@@ -8,6 +8,7 @@
 namespace parser {
 enum class LexerErrorType {
   InvalidFloatLiteral,
+  UnrecognizableCharacter,
 };
 
 class LexerParseError : public std::runtime_error {
@@ -37,7 +38,8 @@ private:
   void skip_whitespaces();
 
   Token parse_identifier();
-
   Token parse_number_literal();
+
+  TokenType peek_punctuation_type();
 };
 } // namespace parser

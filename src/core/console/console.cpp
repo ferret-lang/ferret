@@ -23,7 +23,7 @@ public:
         std::string value = arg.substr(eq + 1);
         auto it = options_.find(key);
         if (it == options_.end())
-          throw new ConsoleParseError("Unknown option: " + key);
+          throw ConsoleParseError("Unknown option: " + key);
         it->second(value);
         continue;
       }

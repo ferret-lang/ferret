@@ -17,6 +17,14 @@ std::string Token::get_type_as_string() const {
     return "StringLiteral";
   case TokenType::Identifier:
     return "Identifier";
+
+  case TokenType::LBrace:
+  case TokenType::RBrace:
+  case TokenType::LBracket:
+  case TokenType::RBracket:
+  case TokenType::SemiColon:
+  case TokenType::Comma:
+    return "Punctuation";
   default:
     return "Unknown Token";
   }

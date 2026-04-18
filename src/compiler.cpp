@@ -2,6 +2,7 @@
 #include "core/fs/fs.hpp"
 #include "core/parser/lexer.hpp"
 #include "core/parser/token.hpp"
+#include <iostream>
 
 int main(int argc, char **argv) {
   // Parsing the command-line arguments.
@@ -12,11 +13,17 @@ int main(int argc, char **argv) {
 
   // Tokenizing the soource code.
   auto lexer = parser::Lexer(source_code);
-  auto tokens = lexer.tokenize();
 
-  // Printing the token to the console.
-  for (const auto &token : tokens) {
-    token.print_me();
+  try {
+    auto tokens = lexer.tokenize();
+
+    // Printing the token to the console.
+    for (const auto &token : tokens) {
+      token.print_me();
+    }
+  } catch (parser::LexerParseError &e) {
+    std::cerr << e.what() << std::endl;
+    return 1;
   }
 
   return 0;

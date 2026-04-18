@@ -10,6 +10,13 @@ enum class TokenType {
   StringLiteral,
 
   Identifier,
+
+  LBrace,
+  RBrace,
+  LBracket,
+  RBracket,
+  SemiColon,
+  Comma
 };
 
 class Token {

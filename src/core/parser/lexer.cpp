@@ -1,6 +1,7 @@
 #include "lexer.hpp"
 #include "token.hpp"
 #include <cctype>
+#include <cstdio>
 
 namespace parser {
 
@@ -47,6 +48,29 @@ Token Lexer::parse_number_literal() {
   return Token(lexeme, token_type);
 };
 
+TokenType Lexer::peek_punctuation_type() {
+  switch (peek()) {
+  case '{':
+    return TokenType::LBrace;
+  case '}':
+    return TokenType::RBrace;
+  case '(':
+    return TokenType::LBracket;
+  case ')':
+    return TokenType::RBracket;
+  case ';':
+    return TokenType::SemiColon;
+  case ',':
+    return TokenType::Comma;
+  default:
+    std::string current_character_s = std::string(1, peek());
+    std::string error_message =
+        "The compiler is unable to recognize '" + current_character_s + "'";
+    throw LexerParseError(LexerErrorType::UnrecognizableCharacter,
+                          error_message);
+  }
+}
+
 std::vector<Token> Lexer::tokenize() {
   std::vector<Token> tokens = {};
 
@@ -63,6 +87,15 @@ std::vector<Token> Lexer::tokenize() {
       tokens.emplace_back(parse_number_literal());
       continue;
     }
+
+    if (current_character == '\n') {
+      advance();
+      continue;
+    }
+
+    TokenType token_type = peek_punctuation_type();
+    std::string lexeme = std::string(1, current_character);
+    tokens.emplace_back(lexeme, token_type);
 
     advance();
   }
