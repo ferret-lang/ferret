@@ -3,9 +3,10 @@
 #include <string>
 
 namespace console {
-struct ConsoleParseError : public std::runtime_error {
+class ConsoleParseError : public std::runtime_error {
+public:
   explicit ConsoleParseError(const std::string &message)
-      : std::runtime_error(message) {};
+      : std::runtime_error(message) {}
 };
 
 struct CompilerOptions {

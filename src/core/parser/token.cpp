@@ -2,10 +2,10 @@
 #include <iostream>
 
 namespace parser {
-TokenType Token::get_type() { return type_; };
-std::string Token::get_lexeme() { return lexeme_; };
+TokenType Token::get_type() const { return type_; };
+std::string Token::get_lexeme() const { return lexeme_; };
 
-std::string Token::get_type_as_string() {
+std::string Token::get_type_as_string() const {
   switch (type_) {
   case TokenType::IntegerLiteral:
     return "IntegerLiteral";
@@ -15,12 +15,14 @@ std::string Token::get_type_as_string() {
     return "BooleanLiteral";
   case TokenType::StringLiteral:
     return "StringLiteral";
+  case TokenType::Identifier:
+    return "Identifier";
   default:
     return "Unknown Token";
   }
 };
 
-void Token::print_me() {
+void Token::print_me() const {
   std::cout << get_type_as_string() << "(" << get_lexeme() << ")" << "\n";
 };
 } // namespace parser

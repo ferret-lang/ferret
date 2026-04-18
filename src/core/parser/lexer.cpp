@@ -1,12 +1,72 @@
 #include "lexer.hpp"
-#include <memory>
+#include "token.hpp"
+#include <cctype>
 
 namespace parser {
-std::vector<std::unique_ptr<Token>> Lexer::tokenize() {
-  std::vector<std::unique_ptr<Token>> tokens = {};
-  tokens.emplace_back(std::make_unique<Token>("int", TokenType::StringLiteral));
-  tokens.emplace_back(
-      std::make_unique<Token>("main", TokenType::StringLiteral));
+
+bool Lexer::is_eof() { return position_ >= source_code_.length(); }
+char Lexer::peek() { return source_code_[position_]; };
+char Lexer::advance() { return source_code_[position_++]; }
+
+void Lexer::skip_whitespaces() {
+  while (std::isspace(peek()) && peek() != '\n')
+    advance();
+}
+
+Token Lexer::parse_identifier() {
+  std::size_t begin = position_;
+  advance();
+  while (std::isalnum(peek()))
+    advance();
+  std::size_t length = position_ - begin;
+
+  std::string lexeme = source_code_.substr(begin, length);
+  return Token(lexeme, TokenType::Identifier);
+};
+
+Token Lexer::parse_number_literal() {
+  std::size_t begin = position_;
+  advance();
+  bool floating_point = false;
+  while (std::isalnum(peek()) || peek() == '.') {
+    if (peek() == '.') {
+      if (floating_point) {
+        throw LexerParseError(
+            LexerErrorType::InvalidFloatLiteral,
+            "A number cannot contain multiple decimal points.");
+      }
+      floating_point = true;
+    }
+    advance();
+  }
+  std::size_t length = position_ - begin;
+
+  std::string lexeme = source_code_.substr(begin, length);
+  auto token_type =
+      floating_point ? TokenType::FloatLiteral : TokenType::IntegerLiteral;
+  return Token(lexeme, token_type);
+};
+
+std::vector<Token> Lexer::tokenize() {
+  std::vector<Token> tokens = {};
+
+  while (!is_eof()) {
+    skip_whitespaces();
+    char current_character = peek();
+
+    if (std::isalpha(current_character)) {
+      tokens.emplace_back(parse_identifier());
+      continue;
+    }
+
+    if (std::isalnum(current_character)) {
+      tokens.emplace_back(parse_number_literal());
+      continue;
+    }
+
+    advance();
+  }
+
   return tokens;
 };
 } // namespace parser

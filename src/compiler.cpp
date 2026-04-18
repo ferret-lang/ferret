@@ -2,7 +2,6 @@
 #include "core/fs/fs.hpp"
 #include "core/parser/lexer.hpp"
 #include "core/parser/token.hpp"
-#include <memory>
 
 int main(int argc, char **argv) {
   // Parsing the command-line arguments.
@@ -17,7 +16,8 @@ int main(int argc, char **argv) {
 
   // Printing the token to the console.
   for (const auto &token : tokens) {
-    token->print_me();
+    token.print_me();
   }
+
   return 0;
 }
