@@ -18,7 +18,6 @@ enum class TokenType {
   SemiColon,
   Comma,
 
-  u8,
   Return,
 };
 

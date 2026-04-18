@@ -23,6 +23,31 @@ Token Parser::expect_and_consume(TokenType type) {
   return consume();
 }
 
+ast::IntegerType Parser::get_type(Token untyped_token) {
+  if (untyped_token.get_type() != TokenType::Identifier)
+    throw std::runtime_error("The provided token cannot be typed.");
+
+  std::string type_label = untyped_token.get_lexeme();
+  if (type_label == "u8")
+    return ast::IntegerType::U8;
+  else if (type_label == "u16")
+    return ast::IntegerType::U16;
+  else if (type_label == "u32")
+    return ast::IntegerType::U32;
+  else if (type_label == "u64")
+    return ast::IntegerType::U64;
+  else if (type_label == "i8")
+    return ast::IntegerType::I8;
+  else if (type_label == "i16")
+    return ast::IntegerType::I16;
+  else if (type_label == "i32")
+    return ast::IntegerType::I32;
+  else if (type_label == "i64")
+    return ast::IntegerType::I64;
+
+  throw std::runtime_error("The provided token cannot be typed.");
+}
+
 std::unique_ptr<ast::Program> Parser::generate_program() {
   std::vector<std::unique_ptr<ast::FunctionDeclaration>> functions = {};
   while (!is_eof())
@@ -31,8 +56,9 @@ std::unique_ptr<ast::Program> Parser::generate_program() {
 };
 
 std::unique_ptr<ast::FunctionDeclaration> Parser::parse_function() {
-  // TODO: implement the u8 type
-  auto return_type = expect_and_consume(TokenType::Identifier);
+  // FIX: very less scalability.
+  auto return_type_token = expect_and_consume(TokenType::Identifier);
+  auto return_type = get_type(return_type_token);
   auto name = expect_and_consume(TokenType::Identifier);
 
   expect_and_consume(TokenType::LBracket);
@@ -71,9 +97,13 @@ std::unique_ptr<ast::Statement> Parser::parse_statement() {
 std::unique_ptr<ast::Expression> Parser::parse_expression() {
   auto token = peek();
   switch (token.get_type()) {
-  case TokenType::IntegerLiteral:
+  case TokenType::IntegerLiteral: {
     consume();
-    return std::make_unique<ast::IntegerLiteral>(std::stoi(token.get_lexeme()));
+    auto type = ast::IntegerType::U32;
+    auto value = std::stoi(token.get_lexeme());
+    return std::make_unique<ast::IntegerLiteral>(value, type);
+  }
+
   default:
     throw std::runtime_error("Unknown expression");
   }
@@ -98,7 +128,8 @@ void Parser::print_function_declaration(
   print_indent(indent);
   std::cout << "Function: " << function_declaration->name.get_lexeme() << "\n";
   print_indent(indent + indent_offset);
-  std::cout << "ReturnType: " << function_declaration->return_type.get_lexeme()
+  // FIX:: Remove the hard-coded integer
+  std::cout << "ReturnType: " << "Integer"
             << "\n";
   print_indent(indent + indent_offset);
   std::cout << "Params Size: " << function_declaration->params.size() << "\n";

@@ -7,7 +7,7 @@
 namespace parser {
 
 std::unordered_map<std::string, TokenType> keywords = {
-    {"u8", TokenType::u8}, {"return", TokenType::Return}};
+    {"return", TokenType::Return}};
 
 bool Lexer::is_eof() const { return position_ >= source_code_.length(); }
 char Lexer::peek() const { return source_code_[position_]; };

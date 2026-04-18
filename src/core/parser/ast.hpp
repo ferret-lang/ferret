@@ -10,9 +10,12 @@ struct Expression {
   virtual ~Expression() = default;
 };
 
+enum class IntegerType { U8, U16, U32, U64, I8, I16, I32, I64 };
+
 struct IntegerLiteral : Expression {
   int value;
-  IntegerLiteral(int value) : value(value) {}
+  IntegerType type;
+  IntegerLiteral(int value, IntegerType type) : value(value), type(type) {}
 };
 
 struct FloatLiteral : Expression {
@@ -43,12 +46,12 @@ struct Parameter {
 };
 
 struct FunctionDeclaration {
-  Token return_type;
+  IntegerType return_type;
   Token name;
   std::vector<Parameter> params;
   std::unique_ptr<BlockStatement> block;
 
-  FunctionDeclaration(Token return_type, Token name,
+  FunctionDeclaration(IntegerType return_type, Token name,
                       std::vector<Parameter> params,
                       std::unique_ptr<BlockStatement> block)
       : return_type(return_type), name(name), params(std::move(params)),

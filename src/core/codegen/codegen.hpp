@@ -3,6 +3,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
 namespace codegen {
@@ -23,5 +24,7 @@ private:
   void generate_statement(const parser::ast::Statement *statement);
   llvm::Value *
   generate_expression_value(const parser::ast::Expression *expression);
+
+  llvm::Type *resolve_type(const parser::ast::IntegerType integer_type);
 };
 }; // namespace codegen

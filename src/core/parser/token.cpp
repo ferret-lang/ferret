@@ -26,7 +26,6 @@ std::string Token::get_type_as_string() const {
   case TokenType::Comma:
     return "Punctuation";
 
-  case TokenType::u8:
   case TokenType::Return:
     return "Keyword";
 

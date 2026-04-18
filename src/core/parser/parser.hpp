@@ -22,6 +22,7 @@ private:
   Token consume();
   void expect(TokenType expected_type) const;
   Token expect_and_consume(TokenType expected_type);
+  ast::IntegerType get_type(Token untyped_type);
 
   std::unique_ptr<ast::FunctionDeclaration> parse_function();
   std::unique_ptr<ast::BlockStatement> parse_block();
