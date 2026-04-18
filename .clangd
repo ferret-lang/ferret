@@ -1,0 +1,9 @@
+CompileFlags:
+  Add: [-I/usr/lib/llvm-18/include]
+  Remove: [-I/usr/include]
+
+Diagnostics:
+  UnusedIncludes: Strict
+
+Index:
+  Background: Build

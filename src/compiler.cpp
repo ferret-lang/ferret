@@ -1,3 +1,4 @@
+#include "core/codegen/codegen.hpp"
 #include "core/console/console.hpp"
 #include "core/fs/fs.hpp"
 #include "core/parser/lexer.hpp"
@@ -12,7 +13,9 @@ int main(int argc, char **argv) {
 
   auto parser = parser::Parser(tokens);
   auto program = parser.generate_program();
-  parser.print_program(program.get());
+
+  auto codegen = codegen::Codegen();
+  codegen.generate_program(program.get());
 
   return 0;
 }
